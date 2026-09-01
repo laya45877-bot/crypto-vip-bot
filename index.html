@@ -65,24 +65,69 @@
         <h2>👑 VIP ဝယ်ယူခြင်းနှင့် ဝင်ရောက်ရန်</h2>
 
         <div class="box">
-            <p>📌 <b>Binance ဖြင့် VIP ဝယ်ယူမည့် လမ်းညွှန်:</b></p>
-            <p>၁။ သင့်ရဲ့ Binance App ထဲသို့ ဝင်ပါ။</p>
-            <p>၂။ Pay သို့မဟုတ် Transfer (Send USDT) ထဲသို့ သွားပါ။</p>
-            <p>၃။ အောက်ပါ Binance ID သို့ လိုအပ်သော USDT ပမာဏကို လွှဲပါ။</p>
+            <p>📌 <b>Binance ဖြင့် VIP ဝယ်ယူမည်ဆိုပါက</b></p>
+            <p>၁။ သင့်ရဲ့ Binance App ထဲသို့ ဝင်ပါ</p>
+            <p>၂။ Pay သို့မဟုတ် Transfer (Send) ကိုနှိပ်ပါ</p>
+            <p>၃။ အောက်ပါ Binance ID သို့ လိုအပ်သော ပမာဏ လွှဲပေးပါ</p>
             <p><b>ID:</b> <code>1058070253</code></p>
-            <p>၄။ ငွေလွှဲပြီး Screenshot ယူပါ။</p>
-            <p>၅။ Telegram Bot သို့ Screenshot ပို့ပေးပါက တစ်ခါတည်း VIP Key ရရှိမည်။</p>
+            <p>၄။ ငွေလွှဲပြီး Screenshot ယူပါ</p>
+            <p>၅။ Telegram Bot သို့ Screenshot ပို့ပေးပါ</p>
         </div>
 
         <!-- Telegram Bot သို့သွားရန် ခလုတ် -->
-        <a href="https://t.me/crypto_signal_pro_key_bot" class="btn-telegram" target="_blank">🤖 Telegram Bot သို့ သွားရန်</a>
+        <a href="https://t.me/crypto_signal_bot" class="btn-vip">💬 VIP ဝယ်ယူရန် Bot သို့သွားမည်</a>
 
         <hr style="border: 0.5px solid #333; margin: 20px 0;">
 
         <h3>🎁 FREE Plan (ရက် ၃၀ အခမဲ့)</h3>
-        <p>ကြော်ငြာ ၂ ပုဒ်ကြည့်၍ အခမဲ့ ဆက်လက်အသုံးပြုပါ။</p>
-        <a href="#" class="btn-free">🎁 FREE Mode သို့ သွားမည်</a>
+        <p id="ad-status">ကြော်ငြာ ၂ ပုဒ်ကြည့်၍ အခမဲ့ ဆက်လက်အသုံးပြုပါ</p>
+        <a href="#" class="btn-free" onclick="onAdCompleted()">🎁 FREE Plan (ကြော်ငြာကြည့်မည်)</a>
     </div>
+<script>// tma_ad_handler.js
+let adsWatched = 0;
+const REQUIRED_ADS = 2;
 
+// Telegram SDK Initialize
+const tg = window.Telegram.WebApp;
+tg.expand();
+
+// Client မူလ App မှ ပို့လိုက်သော Device ID ရယူခြင်း
+const urlParams = new URLSearchParams(window.location.search);
+const deviceId = urlParams.get('deviceId');
+const isFirstTime = urlParams.get('isFirstTime') === 'true';
+
+function onAdCompleted() {
+  adsWatched++;
+  document.getElementById('ad-status').innerText = `ကြော်ငြာ ${adsWatched}/${REQUIRED_ADS} ပုဒ် ကြည့်ပြီးပါပြီ`;
+
+  if (adsWatched >= REQUIRED_ADS) {
+    verifyWithBackend();
+  }
+}
+
+async function verifyWithBackend() {
+  const endpoint = isFirstTime 
+    ? 'https://your-api-domain.com/api/activate-first-time-free'
+    : 'https://your-api-domain.com/api/verify-session-ads';
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deviceId, adsVerified: true })
+  });
+
+  const data = await response.json();
+
+  if (data.success) {
+    // Session Token ကို App ဆီ ပြန်လည်ပေးပို့ပြီး Mini App ပိတ်မည်
+    tg.sendData(JSON.stringify({
+      action: 'SESSION_VERIFIED',
+      sessionToken: data.sessionToken
+    }));
+    tg.close();
+  } else {
+    alert(data.message);
+  }
+}</script>
 </body>
 </html>
