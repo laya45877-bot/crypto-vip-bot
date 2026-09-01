@@ -58,13 +58,14 @@
             margin-top: 10px;
         }
     </style>
+    <script src="https://sad.adsgram.ai/js/sad.js"></script>
 </head>
 <body>
 
     <div class="container">
         <h2>👑 VIP ဝယ်ယူခြင်းနှင့် ဝင်ရောက်ရန်</h2>
 
-        <div class="box">
+        <div class="box"> 
             <p>📌 <b>Binance ဖြင့် VIP ဝယ်ယူမည်ဆိုပါက</b></p>
             <p>၁။ သင့်ရဲ့ Binance App ထဲသို့ ဝင်ပါ</p>
             <p>၂။ Pay သို့မဟုတ် Transfer (Send) ကိုနှိပ်ပါ</p>
@@ -73,7 +74,27 @@
             <p>၄။ ငွေလွှဲပြီး Screenshot ယူပါ</p>
             <p>၅။ Telegram Bot သို့ Screenshot ပို့ပေးပါ</p>
         </div>
+<!-- Adsgram Script ထည့်သွင်းခြင်း -->
+<script src="https://sad.adsgram.ai/js/sad.js"></script>
+<script>
+    // Rewarded Ad Controller ဖန်တီးခြင်း
+    const adController = window.Adsgram.init({ blockId: "YOUR-ADSGRAM-BLOCK-ID" });
 
+    async function watchRealAd() {
+        try {
+            // ကြော်ငြာစတင်ပြသခြင်း
+            const result = await adController.show();
+            
+            // User သည် ကြော်ငြာကို အဆုံးထိ ကြည့်ပြီးမှသာ ဒီအောက်က ကုဒ် အလုပ်လုပ်မည်
+            if (result.done) {
+                // ကြော်ငြာကြည့်ပြီးကြောင်း Backend သို့ တရားဝင် အတည်ပြုချက် ပို့မည်
+                verifyAdCompletionWithBackend();
+            }
+        } catch (e) {
+            alert("ကြော်ငြာကြည့်ရှုရာတွင် အမှားအယွင်းရှိ, မပြီးဆုံးသေးပါ။ ကျေးဇူးပြု၍ အဆုံးထိ ကြည့်ပါ။");
+        }
+    }
+</script>
         <!-- Telegram Bot သို့သွားရန် ခလုတ် -->
         <a href="https://t.me/crypto_signal_bot" class="btn-vip">💬 VIP ဝယ်ယူရန် Bot သို့သွားမည်</a>
 
