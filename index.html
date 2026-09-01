@@ -107,9 +107,9 @@ function onAdCompleted() {
 
 async function verifyWithBackend() {
   const endpoint = isFirstTime 
-    ? 'https://your-api-domain.com/api/activate-first-time-free'
-    : 'https://your-api-domain.com/api/verify-session-ads';
-
+    ? 'https://crypto-vip-bot.vercel.app/api/activate-first-time-free'
+    : 'https://crypto-vip-bot.vercel.app/api/verify-session-ads';
+    
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
