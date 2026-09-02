@@ -3,76 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto AI Signal Pro (Free Version)</title>
+    <title>Crypto AI Signal Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #0f172a;
-            color: #ffffff;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        .container {
-            max-width: 400px;
-            margin: auto;
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        h2 { color: #38bdf8; }
-        .btn {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-        }
-        .btn:hover { background-color: #1d4ed8; }
-        .signal-box {
-            background: #334155;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            display: none;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
 
-    <div class="container">
-        <h2>🚀 Crypto AI Signal Pro</h2>
-        <p>Free User များအတွက် အထူးဆော့ဖ်ဝဲ</p>
-        
-        <p>Signal များ ကြည့်ရှုရန် အောက်ပါခလုတ်ကို နှိပ်ပါ (သို့) ကြော်ငြာကြည့်ပါ</p>
-        
-        <button class="btn" onclick="watchAdForSignal()">📊 Signal ကြည့်ရန် (ကြော်ငြာကြည့်မည်)</button>
+    <div id="loading" class="text-center">
+        <p class="text-xl animate-pulse text-yellow-400">စနစ်ကို စစ်ဆေးနေပါသည်...</p>
+    </div>
 
-        <div id="signalResult" class="signal-box">
-            <h3>📈 Signal အချက်အလက်</h3>
-            <p>Coin: BTC/USDT</p>
-            <p>Action: LONG (BUY)</p>
-            <p>Entry: $67,500</p>
-            <p>Target: $69,000</p>
+    <div id="entry-ad-section" class="hidden w-full max-w-md bg-slate-800 p-6 rounded-2xl shadow-xl text-center border border-slate-700">
+        <h2 class="text-2xl font-bold mb-3 text-yellow-400">📺 အဝင်ကြော်ငြာ ကြည့်ရှုရန်</h2>
+        <p class="text-gray-300 text-sm mb-6">အပလီကေးရှင်းကို အသုံးပြုရန် ကြော်ငြာ (၂) ပုဒ် မဖြစ်မနေ ကြည့်ရှုပေးပါ။</p>
+        
+        <div class="bg-slate-700 p-4 rounded-xl mb-6">
+            <div id="entry-counter" class="text-lg font-bold text-emerald-400">ကြည့်ပြီးကြော်ငြာ: 0 / 2</div>
+        </div>
+
+        <button onclick="watchEntryAd()" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-bold transition shadow-lg">
+            ▶️ ကြော်ငြာကြည့်မည်
+        </button>
+    </div>
+
+    <div id="main-app" class="hidden w-full max-w-md bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700">
+        <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-3">
+            <h1 class="text-xl font-bold text-emerald-400">📈 Crypto AI Signals</h1>
+            <div id="status-badge" class="text-xs bg-emerald-900/60 text-emerald-300 px-3 py-1 rounded-lg border border-emerald-700">VIP Active</div>
+        </div>
+
+        <div class="space-y-3 mb-6">
+            <h3 class="text-sm font-semibold text-gray-400">💎 AI Signals (အခမဲ့ ကြည့်ရှုနိုင်သည်)</h3>
+            <div class="bg-slate-700/80 p-4 rounded-xl border border-slate-600">
+                <div class="flex justify-between font-bold">
+                    <span>BTC/USDT (Long)</span>
+                    <span class="text-green-400">98% Accuracy</span>
+                </div>
+                <p class="text-xs text-gray-300 mt-1">Entry: 64,500$ | TP: 67,000$</p>
+            </div>
+            <div class="bg-slate-700/80 p-4 rounded-xl border border-slate-600">
+                <div class="flex justify-between font-bold">
+                    <span>ETH/USDT (Short)</span>
+                    <span class="text-green-400">95% Accuracy</span>
+                </div>
+                <p class="text-xs text-gray-300 mt-1">Entry: 3,450$ | TP: 3,300$</p>
+            </div>
+        </div>
+
+        <div class="bg-slate-700/50 border border-slate-600 p-4 rounded-xl">
+            <h3 class="font-bold text-sm mb-2 text-yellow-400">🔥 သတင်းကြီးနှင့် အချက်အလက်များ</h3>
+            <div id="news-content-box" class="hidden mb-3 text-xs text-gray-200 bg-slate-900 p-3 rounded-lg border border-slate-700">
+                📰 **သတင်းကြီး:** Bitcoin ဈေးနှုန်းသည် ယခုသီတင်းပတ်အတွင်း အရေးကြီးသော Resistance ဇုန်ကို ထိုးဖောက်ရန် ကြိုးပမ်းနေပြီး ကြီးမားသော လှုပ်ရှားမှုများ ဖြစ်ပေါ်လာနိုင်ပါသည်...
+            </div>
+            <div id="news-lock-ui">
+                <p class="text-xs text-gray-300 mb-3">ဤသတင်းကို ဖတ်ရှုရန် ကြော်ငြာ (၃) ပုဒ် ဆက်လက်ကြည့်ရှုပေးပါ။</p>
+                <div id="content-counter" class="text-xs font-semibold mb-2 text-yellow-300">ကြည့်ပြီး: 0 / 3</div>
+                <button onclick="watchContentAd()" class="bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 rounded-xl font-bold text-sm w-full transition">
+                    📺 သတင်းဖတ်ရန် ကြော်ငြာကြည့်မည် (3)
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        let tg = window.Telegram.WebApp;
+        // ကိုကို့ရဲ့ PythonAnywhere Backend URL ကို ဤနေရာတွင် ထည့်ရန် (ဥပမာ - https://mybot.pythonanywhere.com)
+        const BACKEND_URL = "https://YOUR_PYTHONANYWHERE_USERNAME.pythonanywhere.com";
+
+        const tg = window.Telegram.WebApp;
         tg.expand();
-
-        function watchAdForSignal() {
-            // ဤနေရာတွင် Adsagram (သို့) ကြော်ငြာစနစ် ကုဒ် ထည့်သွင်းနိုင်သည်
-            alert("ကြော်ငြာကြည့်ရှုပြီးပါပြီ။ Signal ကို ဖွင့်ပေးလိုက်ပါပြီ!");
-            document.getElementById("signalResult").style.display = "block";
+        
+        let userId = 123456789; // Telegram မဟုတ်ဘဲ Browser မှာ စမ်းရန် Test ID
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            userId = tg.initDataUnsafe.user.id;
         }
-    </script>
 
+        let entryAdCount = 0;
+        let contentAdCount = 0;
+        let hasExistingKey = false;
+
+        // App စတင်ဖွင့်ချိန်တွင် ဆာဗာသို့ Key ရှိမရှိ စစ်ဆေးခြင်း
+        async function checkUserStatus() {
+            try {
+                let response = await fetch(`${BACKEND_URL}/api/check_status/${userId}`);
+                let data = await response.json();
+                
+                document.getElementById('loading').classList.add('hidden');
+                hasExistingKey = data.has_key;
+
+                // ဝင်လာသည်နှင့် ကြော်ငြာ ၂ ပုဒ်ကြည့်ရမည့် Screen ကို ပြမည်
+                document.getElementById('entry-ad-section').classList.remove('hidden');
+            } catch (error) {
+                console.error("Connection Error:", error);
+                document.getElementById('loading').innerHTML = "<p class='text-red-400'>ဆာဗာသို့ ချိတ်ဆက်၍မရပါ။ Backend လင့်ခ်ကို စစ်ဆေးပါ။</p>";
+            }
+        }
+
+        // အဝင်ကြော်ငြာ ၂ ပုဒ် ကြည့်ခြင်း လုပ်ဆောင်ချက်
+        async function watchEntryAd() {
+            // (ဤနေရာတွင် ကိုကို့ရဲ့ Ad SDK / Adsagram ကုဒ်များကို ထည့်သွင်းရပါမည်)
+            alert("ကြော်ငြာကြည့်ရှုနေပါသည်... (စမ်းသပ်ရန် OK နှိပ်ပါ)");
+            entryAdCount++;
+            
+            if (entryAdCount >= 2) {
+                // ကြော်ငြာ ၂ ပုဒ် ပြည့်သွားပါက ဆာဗာသို့ အကြောင်းကြားမည်
+                // (Key ရှိပြီးသားဆိုရင် Key အသစ်မတောင်းဘဲ အဝင်ကိုသာ အတည်ပြုမည်)
+                let endpoint = hasExistingKey ? `${BACKEND_URL}/api/reentry` : `${BACKEND_URL}/api/generate_key`;
+                
+                try {
+                    let res = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user_id: userId })
+                    });
+                    let data = await res.json();
+                    
+                    if (data.success) {
+                        // Main App သို့ ဝင်ခွင့်ပေးမည်
+                        document.getElementById('entry-ad-section').classList.add('hidden');
+                        document.getElementById('main-app').classList.remove('hidden');
+                    }
+                } catch (e) {
+                    alert("ဆာဗာသို့ အချက်အလက်ပို့ရာတွင် အမှားအယွင်းရှိသည်။");
+                }
+            } else {
+                document.getElementById('entry-counter').innerText = `ကြည့်ပြီးကြော်ငြာ: ${entryAdCount} / 2`;
+            }
+        }
+
+        // Main ထဲမှ သတင်းဖတ်ရန် ကြော်ငြာ ၃ ပုဒ် ကြည့်ခြင်း လုပ်ဆောင်ချက်
+        function watchContentAd() {
+            alert("ကြော်ငြာကြည့်ရှုနေပါသည်... (စမ်းသပ်ရန် OK နှိပ်ပါ)");
+            contentAdCount++;
+            
+            if (contentAdCount >= 3) {
+                alert("🎉 ကြော်ငြာ ၃ ပုဒ် ကြည့်ရှုပြီးပါပြီ။ သတင်းကို ဖွင့်ပေးလိုက်ပါပြီ!");
+                document.getElementById('news-lock-ui').classList.add('hidden');
+                document.getElementById('news-content-box').classList.remove('hidden');
+            } else {
+                document.getElementById('content-counter').innerText = `ကြည့်ပြီး: ${contentAdCount} / 3`;
+            }
+        }
+
+        // စတင် Run မည်
+        checkUserStatus();
+    </script>
 </body>
 </html>
