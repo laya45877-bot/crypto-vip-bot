@@ -21,7 +21,7 @@
             <div id="entry-counter" class="text-lg font-bold text-emerald-400">ကြည့်ပြီးကြော်ငြာ: 0 / 2</div>
         </div>
 
-        <button onclick="watchEntryAd()" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-bold transition shadow-lg">
+        <button onclick="watchAd()" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-bold transition shadow-lg">
             ▶️ ကြော်ငြာကြည့်မည်
         </button>
     </div>
@@ -66,8 +66,8 @@
     </div>
 
     <script>
-        // ကိုကို့ရဲ့ PythonAnywhere Backend URL ကို ဤနေရာတွင် ထည့်ရန် (ဥပမာ - https://mybot.pythonanywhere.com)
-        const BACKEND_URL = "https://YOUR_PYTHONANYWHERE_USERNAME.pythonanywhere.com";
+        // ကိုကို့ရဲ့ Backend URL ထည့်ရန် (လက်ရှိ Vercel URL လိပ်စာကို ထည့်ပါ)
+        const BACKEND_URL = "https://crypto-vip-bot-6pf3.vercel.app";
 
         const tg = window.Telegram.WebApp;
         tg.expand();
@@ -84,12 +84,14 @@
         // App စတင်ဖွင့်ချိန်တွင် ဆာဗာသို့ Key ရှိမရှိ စစ်ဆေးခြင်း
         async function checkUserStatus() {
             try {
-                let response = await fetch(`${BACKEND_URL}/api/check_status/${userId}`);
+                let response = await fetch(`${BACKEND_URL}/api/check-device-status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ deviceId: userId })
+                });
                 let data = await response.json();
                 
                 document.getElementById('loading').classList.add('hidden');
-                hasExistingKey = data.has_key;
-
                 // ဝင်လာသည်နှင့် ကြော်ငြာ ၂ ပုဒ်ကြည့်ရမည့် Screen ကို ပြမည်
                 document.getElementById('entry-ad-section').classList.remove('hidden');
             } catch (error) {
@@ -97,7 +99,8 @@
                 document.getElementById('loading').innerHTML = "<p class='text-red-400'>ဆာဗာသို့ ချိတ်ဆက်၍မရပါ။ Backend လင့်ခ်ကို စစ်ဆေးပါ။</p>";
             }
         }
-        // အဝင်ကြော်ငြာ ၂ ပုဒ် ကြည့်ခြင်း လုပ်ဆောင်ချက်
+
+        // အဝင်ကြော်ငြာ ၂ ပုဒ် ကြည့်ခြင်း လုပ်ဆောင်ချက် (Adsgram SDK ဖြင့်)
         function watchAd() {
             const adController = window.Adsgram.init({ blockId: "45807" });
 
@@ -108,13 +111,11 @@
                     
                     if (entryAdCount >= 2) {
                         // ကြော်ငြာ ၂ ပုဒ် ပြည့်သွားပါက ဆာဗာသို့ အကြောင်းကြားမည်
-                        let endpoint = hasExistingKey ? `${BACKEND_URL}/api/reentry` : `${BACKEND_URL}/api/generate_key`;
-                        
                         try {
-                            let res = await fetch(endpoint, {
+                            let res = await fetch(`${BACKEND_URL}/api/activate-first-time-free`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ user_id: userId })
+                                body: JSON.stringify({ deviceId: userId, adsVerified: true })
                             });
                             let data = await res.json();
                             
@@ -134,26 +135,6 @@
                     console.error("Ad error or closed early:", err);
                     alert("ကြော်ငြာကြည့်ရှုခြင်း မပြီးဆုံးသေးပါ။");
                 });
-        }
-                try {
-                    let res = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user_id: userId })
-                    });
-                    let data = await res.json();
-                    
-                    if (data.success) {
-                        // Main App သို့ ဝင်ခွင့်ပေးမည်
-                        document.getElementById('entry-ad-section').classList.add('hidden');
-                        document.getElementById('main-app').classList.remove('hidden');
-                    }
-                } catch (e) {
-                    alert("ဆာဗာသို့ အချက်အလက်ပို့ရာတွင် အမှားအယွင်းရှိသည်။");
-                }
-            } else {
-                document.getElementById('entry-counter').innerText = `ကြည့်ပြီးကြော်ငြာ: ${entryAdCount} / 2`;
-            }
         }
 
         // Main ထဲမှ သတင်းဖတ်ရန် ကြော်ငြာ ၃ ပုဒ် ကြည့်ခြင်း လုပ်ဆောင်ချက်
