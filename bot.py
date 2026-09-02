@@ -1,144 +1,96 @@
-import os
-import logging
-import sqlite3
-from datetime import datetime, timedelta
-import threading
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+import sqlite3
+from datetime import datetime, timedelta
 
-# Logging စတင်ခြင်း
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-
-WEB_APP_URL = "https://crypto-vip-bot.vercel.app"
-
-# Flask App စတင်ခြင်း (Mini App နဲ့ ချိတ်ဆက်ရန်)
 app = Flask(__name__)
-CORS(app)  # Vercel ဘက်ကနေ လှမ်းခေါ်တဲ့အခါ CORS Error မတက်အောင် ကာကွယ်ပေးသည်
+CORS(app)  # Frontend ကနေ လှမ်းချိတ်လို့ရအောင် CORS ခွင့်ပြုပေးခြင်း
 
+DB_NAME = "database.db"
+
+# ဇယားဖန်တီးခြင်း (Database Initialization)
 def init_db():
-    conn = sqlite3.connect('bot_database.db', check_same_thread=False)
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY,
-            entry_ads_completed INTEGER DEFAULT 0,
-            session_expiry TEXT
+            user_id TEXT PRIMARY KEY,
+            has_key INTEGER DEFAULT 0,
+            expiry_date TEXT,
+            created_at TEXT
         )
     ''')
     conn.commit()
     conn.close()
 
-# 1. User ရဲ့ ကြော်ငြာနှင့် အချိန်အခြေအနေကို စစ်ဆေးမယ့် API
-@app.route('/api/status/<int:user_id>', methods=['GET'])
-def get_status(user_id):
-    conn = sqlite3.connect('bot_database.db', check_same_thread=False)
-    cursor = conn.cursor()
-    cursor.execute('SELECT entry_ads_completed, session_expiry FROM users WHERE user_id = ?', (user_id,))
-    row = cursor.fetchone()
-    conn.close()
-    
-    if not row:
-        return jsonify({"entry_ads_completed": 0, "session_active": False})
-    
-    entry_done = row[0]
-    expiry_str = row[1]
-    
-    session_active = False
-    if expiry_str:
-        expiry_time = datetime.fromisoformat(expiry_str)
-        if datetime.now() < expiry_time:
-            session_active = True
-            
-    return jsonify({
-        "entry_ads_completed": entry_done,
-        "session_active": session_active,
-        "expiry_time": expiry_str
-    })
+init_db()
 
-# 2. စစချင်း ဝင်တဲ့အခါ ကြော်ငြာ ၂ ပုဒ် ကြည့်ပြီးကြောင်း မှတ်မယ့် API
-@app.route('/api/entry_done', methods=['POST'])
-def entry_done():
-    data = request.json
-    user_id = data.get('user_id')
-    if not user_id:
-        return jsonify({"success": False, "error": "No user_id provided"})
-        
-    conn = sqlite3.connect('bot_database.db', check_same_thread=False)
+# ၁။ User ရဲ့ လက်ရှိအခြေအနေကို စစ်ဆေးခြင်း
+@app.route('/api/check_status/<user_id>', methods=['GET'])
+def check_status(user_id):
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute('UPDATE users SET entry_ads_completed = 1 WHERE user_id = ?', (user_id,))
+    cursor.execute('SELECT has_key, expiry_date FROM users WHERE user_id = ?', (str(user_id),))
+    user = cursor.fetchone()
+    conn.close()
+
+    if user:
+        return jsonify({"success": True, "has_key": bool(user[0]), "expiry_date": user[1]})
+    else:
+        return jsonify({"success": True, "has_key": False, "expiry_date": None})
+
+# ၂။ ပထမအကြိမ်အတွက် ရက် ၃၀ Key အသစ် ထုတ်ပေးခြင်း (တစ်သက်မှာ တစ်ကြိမ်သာ)
+@app.route('/api/generate_key', methods=['POST'])
+def generate_key():
+    data = request.json
+    user_id = str(data.get('user_id'))
+
+    if not user_id:
+        return jsonify({"success": False, "message": "User ID is required"}), 400
+
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    
+    # ဒီ User မှာ Key အရင်က ရှိပြီးသားလား ထပ်စစ်မယ်
+    cursor.execute('SELECT has_key FROM users WHERE user_id = ?', (user_id,))
+    user = cursor.fetchone()
+
+    now = datetime.now()
+    expiry = now + timedelta(days=30)
+    expiry_str = expiry.strftime('%Y-%m-%d %H:%M:%S')
+
+    if user and user[0] == 1:
+        # ပြီးသွားပြီသားဆိုရင် Key အသစ်ထပ်မထုတ်ပေးတော့ဘဲ ရှိပြီးသားကိုပဲ ပြန်သုံးခွင့်ပေးမယ်
+        conn.close()
+        return jsonify({"success": True, "message": "Key already exists (One-time only)"})
+
+    # မရှိသေးရင် ရက် ၃၀ စာ Key အသစ် အတည်ပြုပေးမည်
+    cursor.execute('''
+        INSERT OR REPLACE INTO users (user_id, has_key, expiry_date, created_at)
+        VALUES (?, 1, ?, ?)
+    ''', (user_id, expiry_str, now.strftime('%Y-%m-%d %H:%M:%S')))
+    
     conn.commit()
     conn.close()
-    return jsonify({"success": True})
 
-# 3. အထဲမှာ ကြော်ငြာ ၃ ပုဒ် ကြည့်ပြီးလို့ ၁၀ မိနစ်စာ အချိန်တိုးပေးမယ့် API
-@app.route('/api/session_done', methods=['POST'])
-def session_done():
+    return jsonify({"success": True, "message": "Free 30-day key generated successfully", "expiry_date": expiry_str})
+
+# ၃။ ရက် ၃၀ အတွင်း ပြန်လည်ဝင်ရောက်ခြင်း (Re-entry)
+@app.route('/api/reentry', methods=['POST'])
+def reentry():
     data = request.json
-    user_id = data.get('user_id')
-    if not user_id:
-        return jsonify({"success": False, "error": "No user_id provided"})
-        
-    # လက်ရှိအချိန်မှ ၁၀ မိနစ် ထပ်ပေါင်းမည်
-    new_expiry = (datetime.now() + timedelta(minutes=10)).isoformat()
-    
-    conn = sqlite3.connect('bot_database.db', check_same_thread=False)
-    cursor = conn.cursor()
-    cursor.execute('UPDATE users SET session_expiry = ? WHERE user_id = ?', (new_expiry, user_id))
-    conn.commit()
-    conn.close()
-    return jsonify({"success": True, "expiry_time": new_expiry})
+    user_id = str(data.get('user_id'))
 
-# Flask ကို Background Thread ဖြင့် ဖွင့်ခြင်း
-def run_flask():
-    app.run(host='0.0.0.0', port=5000)
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    user_id = user.id
-    user_name = user.first_name if user and user.first_name else "ကိုကို"
-    
-    conn = sqlite3.connect('bot_database.db', check_same_thread=False)
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute('SELECT entry_ads_completed, session_expiry FROM users WHERE user_id = ?', (user_id,))
-    row = cursor.fetchone()
-    
-    if not row:
-        cursor.execute('INSERT INTO users (user_id, entry_ads_completed, session_expiry) VALUES (?, 0, ?)', 
-                       (user_id, datetime.now().isoformat()))
-        conn.commit()
-    
+    cursor.execute('SELECT has_key FROM users WHERE user_id = ?', (user_id,))
+    user = cursor.fetchone()
     conn.close()
-    
-    keyboard = [
-        [InlineKeyboardButton("🚀 Crypto AI Signal Pro ဖွင့်ရန်", web_app=WebAppInfo(url=WEB_APP_URL))]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    welcome_message = (
-        f"မင်္ဂလာပါ ကိုကို {user_name} 👋\n\n"
-        "Crypto AI Signal Pro မှ ကြိုဆိုပါတယ်။ အောက်ပါခလုတ်ကိုနှိပ်ပြီး "
-        "Mini App ကို ဝင်ရောက်အသုံးပြုနိုင်ပါပြီခင်ဗြာ။"
-    )
-    
-    await update.message.reply_text(welcome_message, reply_markup=reply_markup)
+
+    if user and user[0] == 1:
+        return jsonify({"success": True, "message": "Re-entry allowed"})
+    else:
+        return jsonify({"success": False, "message": "No active key found"})
 
 if __name__ == '__main__':
-    init_db()
-    
-    # Flask API ဆာဗာကို စတင်ခြင်း
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.daemon = True
-    flask_thread.start()
-    
-    BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
-    
-    application = ApplicationBuilder().token(BOT_TOKEN).build()
-    application.add_handler(CommandHandler("start", start))
-    
-    print("Telegram Bot နှင့် API ဆာဗာပါ အလုပ်လုပ်နေပါပြီ...")
-    application.run_polling()
+    app.run(debug=True)
