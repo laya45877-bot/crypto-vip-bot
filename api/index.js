@@ -113,5 +113,33 @@ router.post('/api/verify-session-ads', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+// ==========================================
+// Adsgram Reward Callback Endpoint
+// ==========================================
+app.get('/api/reward', async (req, res) => {
+    try {
+        const userId = req.query.userId;
+        
+        if (!userId) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Missing userId parameter' 
+            });
+        }
 
+        // TODO: ဒီနေရာမှာ Database ထဲက သက်ဆိုင်ရာ userId ကို Key တစ်ခု တိုးပေးမယ့် ကုဒ်ထည့်ရန်
+        console.log(`Success: User ${userId} watched the ad and earned a key.`);
+
+        return res.status(200).json({ 
+            success: true, 
+            message: 'Key rewarded successfully' 
+        });
+    } catch (error) {
+        console.error('Reward API Error:', error);
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Internal server error' 
+        });
+    }
+});
 module.exports = router;
