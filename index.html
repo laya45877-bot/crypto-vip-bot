@@ -3,152 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VIP & Free Plan Portal</title>
+    <title>Crypto AI Signal Pro (Free Version)</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            background-color: #121212;
-            color: #ffffff;
             font-family: Arial, sans-serif;
+            background-color: #0f172a;
+            color: #ffffff;
+            margin: 0;
             padding: 20px;
             text-align: center;
         }
         .container {
             max-width: 400px;
-            margin: 0 auto;
-            background: #1e1e1e;
+            margin: auto;
+            background: #1e293b;
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-        h2 { color: #f3ba2f; }
-        .box {
-            background: #2b2b2b;
+        h2 { color: #38bdf8; }
+        .btn {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+        }
+        .btn:hover { background-color: #1d4ed8; }
+        .signal-box {
+            background: #334155;
             padding: 15px;
             border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: left;
-            border: 1px dashed #f3ba2f;
-        }
-        .btn-telegram {
-            background: #0088cc;
-            color: white;
-            padding: 12px;
-            border: none;
-            width: 100%;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
-            display: block;
-            margin-top: 10px;
-        }
-        .btn-free {
-            background: #28a745;
-            color: white;
-            padding: 12px;
-            border: none;
-            width: 100%;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
-            display: block;
-            margin-top: 10px;
+            margin-top: 15px;
+            display: none;
         }
     </style>
-    <script src="https://sad.adsgram.ai/js/sad.js"></script>
 </head>
 <body>
 
     <div class="container">
-        <h2>👑 VIP ဝယ်ယူခြင်းနှင့် ဝင်ရောက်ရန်</h2>
+        <h2>🚀 Crypto AI Signal Pro</h2>
+        <p>Free User များအတွက် အထူးဆော့ဖ်ဝဲ</p>
+        
+        <p>Signal များ ကြည့်ရှုရန် အောက်ပါခလုတ်ကို နှိပ်ပါ (သို့) ကြော်ငြာကြည့်ပါ</p>
+        
+        <button class="btn" onclick="watchAdForSignal()">📊 Signal ကြည့်ရန် (ကြော်ငြာကြည့်မည်)</button>
 
-        <div class="box"> 
-            <p>📌 <b>Binance ဖြင့် VIP ဝယ်ယူမည်ဆိုပါက</b></p>
-            <p>၁။ သင့်ရဲ့ Binance App ထဲသို့ ဝင်ပါ</p>
-            <p>၂။ Pay သို့မဟုတ် Transfer (Send) ကိုနှိပ်ပါ</p>
-            <p>၃။ အောက်ပါ Binance ID သို့ လိုအပ်သော ပမာဏ လွှဲပေးပါ</p>
-            <p><b>ID:</b> <code>1058070253</code></p>
-            <p>၄။ ငွေလွှဲပြီး Screenshot ယူပါ</p>
-            <p>၅။ Telegram Bot သို့ Screenshot ပို့ပေးပါ</p>
+        <div id="signalResult" class="signal-box">
+            <h3>📈 Signal အချက်အလက်</h3>
+            <p>Coin: BTC/USDT</p>
+            <p>Action: LONG (BUY)</p>
+            <p>Entry: $67,500</p>
+            <p>Target: $69,000</p>
         </div>
-<!-- Adsgram Script ထည့်သွင်းခြင်း -->
-<script src="https://sad.adsgram.ai/js/sad.js"></script>
-<script>
-    // Rewarded Ad Controller ဖန်တီးခြင်း
-    const adController = window.Adsgram.init({ blockId: "YOUR-ADSGRAM-BLOCK-ID" });
-
-    async function watchRealAd() {
-        try {
-            // ကြော်ငြာစတင်ပြသခြင်း
-            const result = await adController.show();
-            
-            // User သည် ကြော်ငြာကို အဆုံးထိ ကြည့်ပြီးမှသာ ဒီအောက်က ကုဒ် အလုပ်လုပ်မည်
-            if (result.done) {
-                // ကြော်ငြာကြည့်ပြီးကြောင်း Backend သို့ တရားဝင် အတည်ပြုချက် ပို့မည်
-                verifyAdCompletionWithBackend();
-            }
-        } catch (e) {
-            alert("ကြော်ငြာကြည့်ရှုရာတွင် အမှားအယွင်းရှိ, မပြီးဆုံးသေးပါ။ ကျေးဇူးပြု၍ အဆုံးထိ ကြည့်ပါ။");
-        }
-    }
-</script>
-        <!-- Telegram Bot သို့သွားရန် ခလုတ် -->
-        <a href="https://t.me/crypto_signal_bot" class="btn-vip">💬 VIP ဝယ်ယူရန် Bot သို့သွားမည်</a>
-
-        <hr style="border: 0.5px solid #333; margin: 20px 0;">
-
-        <h3>🎁 FREE Plan (ရက် ၃၀ အခမဲ့)</h3>
-        <p id="ad-status">ကြော်ငြာ ၂ ပုဒ်ကြည့်၍ အခမဲ့ ဆက်လက်အသုံးပြုပါ</p>
-        <a href="#" class="btn-free" onclick="onAdCompleted()">🎁 FREE Plan (ကြော်ငြာကြည့်မည်)</a>
     </div>
-<script>// tma_ad_handler.js
-let adsWatched = 0;
-const REQUIRED_ADS = 2;
 
-// Telegram SDK Initialize
-const tg = window.Telegram.WebApp;
-tg.expand();
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
 
-// Client မူလ App မှ ပို့လိုက်သော Device ID ရယူခြင်း
-const urlParams = new URLSearchParams(window.location.search);
-const deviceId = urlParams.get('deviceId');
-const isFirstTime = urlParams.get('isFirstTime') === 'true';
+        function watchAdForSignal() {
+            // ဤနေရာတွင် Adsagram (သို့) ကြော်ငြာစနစ် ကုဒ် ထည့်သွင်းနိုင်သည်
+            alert("ကြော်ငြာကြည့်ရှုပြီးပါပြီ။ Signal ကို ဖွင့်ပေးလိုက်ပါပြီ!");
+            document.getElementById("signalResult").style.display = "block";
+        }
+    </script>
 
-function onAdCompleted() {
-  adsWatched++;
-  document.getElementById('ad-status').innerText = `ကြော်ငြာ ${adsWatched}/${REQUIRED_ADS} ပုဒ် ကြည့်ပြီးပါပြီ`;
-
-  if (adsWatched >= REQUIRED_ADS) {
-    verifyWithBackend();
-  }
-}
-
-async function verifyWithBackend() {
-  const endpoint = isFirstTime 
-    ? 'https://crypto-vip-bot.vercel.app/api/activate-first-time-free'
-    : 'https://crypto-vip-bot.vercel.app/api/verify-session-ads';
-    
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ deviceId, adsVerified: true })
-  });
-
-  const data = await response.json();
-
-  if (data.success) {
-    // Session Token ကို App ဆီ ပြန်လည်ပေးပို့ပြီး Mini App ပိတ်မည်
-    tg.sendData(JSON.stringify({
-      action: 'SESSION_VERIFIED',
-      sessionToken: data.sessionToken
-    }));
-    tg.close();
-  } else {
-    alert(data.message);
-  }
-}</script>
 </body>
 </html>
