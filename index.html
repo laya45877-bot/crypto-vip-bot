@@ -99,10 +99,19 @@
         }
 
         // အဝင်ကြော်ငြာ ၂ ပုဒ် ကြည့်ခြင်း လုပ်ဆောင်ချက်
-        async function watchEntryAd() {
-            // (ဤနေရာတွင် ကိုကို့ရဲ့ Ad SDK / Adsagram ကုဒ်များကို ထည့်သွင်းရပါမည်)
-            alert("ကြော်ငြာကြည့်ရှုနေပါသည်... (စမ်းသပ်ရန် OK နှိပ်ပါ)");
-            entryAdCount++;
+        async function watchAd() {
+    const adController = window.Adsgram.init({ blockId: "45807" });
+
+    adController.show()
+        .then((result) => {
+            console.log("Ad watched successfully!");
+            // ဒီနေရာမှာ user ကို Key ပေးမယ့် ကုဒ်ဆက်ရေးရန်
+        })
+        .catch((err) => {
+            console.error("Ad error:", err);
+        });
+}
+
             
             if (entryAdCount >= 2) {
                 // ကြော်ငြာ ၂ ပုဒ် ပြည့်သွားပါက ဆာဗာသို့ အကြောင်းကြားမည်
