@@ -97,27 +97,44 @@
                 document.getElementById('loading').innerHTML = "<p class='text-red-400'>ဆာဗာသို့ ချိတ်ဆက်၍မရပါ။ Backend လင့်ခ်ကို စစ်ဆေးပါ။</p>";
             }
         }
-
         // အဝင်ကြော်ငြာ ၂ ပုဒ် ကြည့်ခြင်း လုပ်ဆောင်ချက်
-        async function watchAd() {
-    const adController = window.Adsgram.init({ blockId: "45807" });
+        function watchAd() {
+            const adController = window.Adsgram.init({ blockId: "45807" });
 
-    adController.show()
-        .then((result) => {
-            console.log("Ad watched successfully!");
-            // ဒီနေရာမှာ user ကို Key ပေးမယ့် ကုဒ်ဆက်ရေးရန်
-        })
-        .catch((err) => {
-            console.error("Ad error:", err);
-        });
-}
-
-            
-            if (entryAdCount >= 2) {
-                // ကြော်ငြာ ၂ ပုဒ် ပြည့်သွားပါက ဆာဗာသို့ အကြောင်းကြားမည်
-                // (Key ရှိပြီးသားဆိုရင် Key အသစ်မတောင်းဘဲ အဝင်ကိုသာ အတည်ပြုမည်)
-                let endpoint = hasExistingKey ? `${BACKEND_URL}/api/reentry` : `${BACKEND_URL}/api/generate_key`;
-                
+            adController.show()
+                .then(async (result) => {
+                    console.log("Ad watched successfully!");
+                    entryAdCount++;
+                    
+                    if (entryAdCount >= 2) {
+                        // ကြော်ငြာ ၂ ပုဒ် ပြည့်သွားပါက ဆာဗာသို့ အကြောင်းကြားမည်
+                        let endpoint = hasExistingKey ? `${BACKEND_URL}/api/reentry` : `${BACKEND_URL}/api/generate_key`;
+                        
+                        try {
+                            let res = await fetch(endpoint, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ user_id: userId })
+                            });
+                            let data = await res.json();
+                            
+                            if (data.success) {
+                                // Main App သို့ ဝင်ခွင့်ပေးမည်
+                                document.getElementById('entry-ad-section').classList.add('hidden');
+                                document.getElementById('main-app').classList.remove('hidden');
+                            }
+                        } catch (e) {
+                            alert("ဆာဗာသို့ အချက်အလက်ပို့ရာတွင် အမှားအယွင်းရှိသည်။");
+                        }
+                    } else {
+                        document.getElementById('entry-counter').innerText = `ကြည့်ပြီးကြော်ငြာ: ${entryAdCount} / 2`;
+                    }
+                })
+                .catch((err) => {
+                    console.error("Ad error or closed early:", err);
+                    alert("ကြော်ငြာကြည့်ရှုခြင်း မပြီးဆုံးသေးပါ။");
+                });
+        }
                 try {
                     let res = await fetch(endpoint, {
                         method: 'POST',
