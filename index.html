@@ -6,16 +6,20 @@
     <title>Crypto AI Signal Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Adsgram SDK ထည့်သွင်းခြင်း -->
+    <script src="https://sad.adsgram.ai/js/adsgram.min.js"></script>
 </head>
 <body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
 
+    <!-- Loading Screen -->
     <div id="loading" class="text-center">
         <p class="text-xl animate-pulse text-yellow-400">စနစ်ကို စစ်ဆေးနေပါသည်...</p>
     </div>
 
+    <!-- အဝင်ကြော်ငြာ ကြည့်ရမည့် Section (ပထမအကြိမ် (သို့) ရက် ၃၀ အတွင်း ပြန်ဝင်တိုင်း) -->
     <div id="entry-ad-section" class="hidden w-full max-w-md bg-slate-800 p-6 rounded-2xl shadow-xl text-center border border-slate-700">
-        <h2 class="text-2xl font-bold mb-3 text-yellow-400">📺 အဝင်ကြော်ငြာ ကြည့်ရှုရန်</h2>
-        <p class="text-gray-300 text-sm mb-6">အပလီကေးရှင်းကို အသုံးပြုရန် ကြော်ငြာ (၂) ပုဒ် မဖြစ်မနေ ကြည့်ရှုပေးပါ။</p>
+        <h2 id="ad-title" class="text-2xl font-bold mb-3 text-yellow-400">📺 အဝင်ကြော်ငြာ ကြည့်ရှုရန်</h2>
+        <p id="ad-desc" class="text-gray-300 text-sm mb-6">အပလီကေးရှင်းကို အသုံးပြုရန် ကြော်ငြာ (၂) ပုဒ် မဖြစ်မနေ ကြည့်ရှုပေးပါ။</p>
         
         <div class="bg-slate-700 p-4 rounded-xl mb-6">
             <div id="entry-counter" class="text-lg font-bold text-emerald-400">ကြည့်ပြီးကြော်ငြာ: 0 / 2</div>
@@ -26,6 +30,18 @@
         </button>
     </div>
 
+    <!-- သက်တမ်းကုန်သွားပါက ရောက်ရှိမည့် VIP မျက်နှာပြင် (VIP Subscription Screen) -->
+    <div id="vip-screen" class="hidden w-full max-w-md bg-slate-800 p-6 rounded-2xl shadow-xl text-center border border-red-500/50">
+        <div class="text-red-400 text-5xl mb-3">⚠️</div>
+        <h2 class="text-2xl font-bold mb-2 text-red-400">သက်တမ်း ကုန်ဆုံးသွားပါပြီ</h2>
+        <p class="text-gray-300 text-sm mb-6">သင့်ရဲ့ ရက် ၃၀ အခမဲ့ သက်တမ်း ကုန်ဆုံးသွားပါပြီ။ ဆက်လက်အသုံးပြုရန် VIP စာရင်းသွင်းမှု (Subscription) ပြုလုပ်ပါ။</p>
+        
+        <button onclick="openVipPayment()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 py-3 rounded-xl font-bold text-slate-900 transition shadow-lg">
+            💎 VIP သို့ Upgrade လုပ်မည်
+        </button>
+    </div>
+
+    <!-- Main App Screen (အဓိက အသုံးချင်သည့် နေရာ) -->
     <div id="main-app" class="hidden w-full max-w-md bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700">
         <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-3">
             <h1 class="text-xl font-bold text-emerald-400">📈 Crypto AI Signals</h1>
@@ -66,7 +82,6 @@
     </div>
 
     <script>
-        // ကိုကို့ရဲ့ Backend URL ထည့်ရန် (လက်ရှိ Vercel URL လိပ်စာကို ထည့်ပါ)
         const BACKEND_URL = "https://AAJSSS.pythonanywhere.com";
 
         const tg = window.Telegram.WebApp;
@@ -81,19 +96,28 @@
         let contentAdCount = 0;
         let hasExistingKey = false;
 
-        // App စတင်ဖွင့်ချိန်တွင် ဆာဗာသို့ Key ရှိမရှိ စစ်ဆေးခြင်း
+        // App စတင်ဖွင့်ချိန်တွင် ဆာဗာသို့ အခြေအနေ လှမ်းစစ်ခြင်း
         async function checkUserStatus() {
             try {
-                let response = await fetch(`${BACKEND_URL}/api/check-device-status`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ deviceId: userId })
-                });
+                let response = await fetch(`${BACKEND_URL}/api/check_status/${userId}`);
                 let data = await response.json();
                 
                 document.getElementById('loading').classList.add('hidden');
-                // ဝင်လာသည်နှင့် ကြော်ငြာ ၂ ပုဒ်ကြည့်ရမည့် Screen ကို ပြမည်
-                document.getElementById('entry-ad-section').classList.remove('hidden');
+                
+                if (data.has_key && data.is_expired) {
+                    // အခြေအနေ ၁ - သက်တမ်းကုန်သွားပြီဆိုရင် VIP Screen ဆီ တန်းပို့မည်
+                    document.getElementById('vip-screen').classList.remove('hidden');
+                } else if (data.has_key && !data.is_expired) {
+                    // အခြေအနေ ၂ - ရက် ၃၀ အတွင်း ရှိသေးသည် (Re-entry - ကြော်ငြာ ၂ ပုဒ် မဖြစ်မနေ ပြန်ကြည့်ရမည်)
+                    hasExistingKey = true;
+                    document.getElementById('ad-title').innerText = "📺 ပြန်လည်ဝင်ရောက်ရန် ကြော်ငြာကြည့်ရန်";
+                    document.getElementById('ad-desc').innerText = "သင့်ရဲ့ ရက် ၃၀ သက်တမ်းအတွင်း ရှိနေပါပြီ။ App ကိုအသုံးပြုရန် ကြော်ငြာ (၂) ပုဒ် ဆက်လက်ကြည့်ရှုပေးပါ။";
+                    document.getElementById('entry-ad-section').classList.remove('hidden');
+                } else {
+                    // အခြေအနေ ၃ - တစ်ခါမှ မယူဖူးသေးသော ပထမအကြိမ် Free သမား
+                    hasExistingKey = false;
+                    document.getElementById('entry-ad-section').classList.remove('hidden');
+                }
             } catch (error) {
                 console.error("Connection Error:", error);
                 document.getElementById('loading').innerHTML = "<p class='text-red-400'>ဆာဗာသို့ ချိတ်ဆက်၍မရပါ။ Backend လင့်ခ်ကို စစ်ဆေးပါ။</p>";
@@ -110,12 +134,14 @@
                     entryAdCount++;
                     
                     if (entryAdCount >= 2) {
-                        // ကြော်ငြာ ၂ ပုဒ် ပြည့်သွားပါက ဆာဗာသို့ အကြောင်းကြားမည်
+                        // ကြော်ငြာ ၂ ပုဒ် ပြည့်သွားပါက - Key ရှိပြီးသားဆိုရင် /reentry၊ မရှိသေးရင် /generate_key သို့ ပို့မည်
+                        let endpoint = hasExistingKey ? `${BACKEND_URL}/api/reentry` : `${BACKEND_URL}/api/generate_key`;
+                        
                         try {
-                            let res = await fetch(`${BACKEND_URL}/api/activate-first-time-free`, {
+                            let res = await fetch(endpoint, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ deviceId: userId, adsVerified: true })
+                                body: JSON.stringify({ user_id: userId })
                             });
                             let data = await res.json();
                             
@@ -123,6 +149,9 @@
                                 // Main App သို့ ဝင်ခွင့်ပေးမည်
                                 document.getElementById('entry-ad-section').classList.add('hidden');
                                 document.getElementById('main-app').classList.remove('hidden');
+                            } else {
+                                alert(data.message || "သက်တမ်းကုန်ဆုံးသွားပါပြီ။");
+                                location.reload();
                             }
                         } catch (e) {
                             alert("ဆာဗာသို့ အချက်အလက်ပို့ရာတွင် အမှားအယွင်းရှိသည်။");
@@ -151,8 +180,16 @@
             }
         }
 
+        // VIP ပေးချေမည့်လင့်ခ် သို့မဟုတ် Admin ဆက်သွယ်ရန် ဖွင့်ပေးမည့် Function
+        function openVipPayment() {
+            alert("VIP ဝယ်ယူရန် Admin ထံသို့ ဆက်သွယ်ပေးပါ။");
+            // ဥပမာ - Telegram Chat သို့မဟုတ် Payment Page သို့ လင့်ခ်ချိတ်လိုပါက ဤနေရာတွင် ထည့်နိုင်ပါသည်
+            // window.open('https://t.me/YourAdminUsername', '_blank');
+        }
+
         // စတင် Run မည်
         checkUserStatus();
     </script>
 </body>
 </html>
+
